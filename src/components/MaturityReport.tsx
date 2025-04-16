@@ -9,6 +9,8 @@ import { SegmentScore } from "@/utils/calculateMaturity";
 import { generateSegmentRecommendations, generateGeneralDiagnosis, getTopRecommendations } from "@/utils/generateRecommendations";
 import MaturityChart from "./MaturityChart";
 import { ArrowLeft, FileDown, FilePlus } from "lucide-react";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 
 type MaturityReportProps = {
   companyName: string;
@@ -29,9 +31,82 @@ const MaturityReport: React.FC<MaturityReportProps> = ({
   
   const diagnosis = generateGeneralDiagnosis(segmentScores);
   const topRecommendations = getTopRecommendations(segmentScores);
+  
+  const handleExportPDF = async () => {
+    try {
+      const element = document.getElementById('report-content');
+      if (!element) return;
+      
+      // Add temporary styles for PDF capture
+      const originalStyles = element.getAttribute('style');
+      element.style.overflow = 'visible';
+      element.style.height = 'auto';
+      element.style.display = 'block';
+      
+      // Scroll to top before capturing
+      window.scrollTo(0, 0);
+      
+      // Add delay to ensure all content is rendered
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        scrollY: -window.scrollY,
+        useCORS: true,
+        allowTaint: true,
+        logging: true,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight,
+        onclone: (clonedDoc) => {
+          // Ensure all elements are visible in the cloned document
+          const reportContent = clonedDoc.getElementById('report-content');
+          if (reportContent) {
+            reportContent.style.overflow = 'visible';
+            reportContent.style.height = 'auto';
+            reportContent.style.display = 'block';
+          }
+        }
+      });
+      
+      // Restore original styles
+      if (originalStyles) {
+        element.setAttribute('style', originalStyles);
+      } else {
+        element.removeAttribute('style');
+      }
+      
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // Margem de 10mm
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      
+      // Calcular quantas páginas serão necessárias
+      const pageHeight = pdf.internal.pageSize.getHeight() - 20;
+      let heightLeft = pdfHeight;
+      let position = 10;
+      
+      // Adicionar primeira página
+      pdf.addImage(imgData, 'PNG', 10, position, pdfWidth, pdfHeight, undefined, 'FAST');
+      heightLeft -= pageHeight;
+      
+      // Adicionar páginas adicionais se necessário
+      while (heightLeft >= 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 10, position, pdfWidth, pdfHeight, undefined, 'FAST');
+        heightLeft -= pageHeight;
+      }
+      
+      pdf.save(`Relatório LGPD - ${companyName}.pdf`);
+    } catch (error) {
+      console.error('Erro ao exportar PDF:', error);
+    }
+  };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div id="report-content" className="max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <Button variant="outline" size="sm" onClick={onReset}>
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -42,7 +117,7 @@ const MaturityReport: React.FC<MaturityReportProps> = ({
             <FilePlus className="h-4 w-4 mr-2" />
             Salvar
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleExportPDF}>
             <FileDown className="h-4 w-4 mr-2" />
             Exportar PDF
           </Button>

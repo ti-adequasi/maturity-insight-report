@@ -22,10 +22,15 @@ const Index = () => {
   };
 
   const handleAnswerChange = (questionId: string, value: number) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: value,
-    }));
+    console.log(`Changing answer for ${questionId} to ${value}`); // Log para depuração
+    setAnswers((prev) => {
+      const newState = {
+        ...prev,
+        [questionId]: value,
+      };
+      console.log('New answers state:', newState); // Log para depuração
+      return newState;
+    });
   };
 
   const handleNextSegment = () => {
