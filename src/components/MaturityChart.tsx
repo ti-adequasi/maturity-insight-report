@@ -37,15 +37,15 @@ const MaturityChart: React.FC<MaturityChartProps> = ({ segmentScores }) => {
 
   return (
     <Card className="mb-8">
-      <CardHeader>
+      <CardHeader className="relative z-10">
         <h2 className="text-xl font-bold">Níveis de Maturidade por Segmento</h2>
       </CardHeader>
       <CardContent>
-        <div className="h-72">
+        <div className="h-80 md:h-96">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={chartData}
-              margin={{ top: 10, right: 30, left: 0, bottom: 30 }}
+              margin={{ top: 20, right: 30, left: 20, bottom: 30 }}
             >
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis 
@@ -92,11 +92,11 @@ const MaturityChart: React.FC<MaturityChartProps> = ({ segmentScores }) => {
             </ComposedChart>
           </ResponsiveContainer>
         </div>
-        <div className="flex justify-center flex-wrap mt-4 gap-2">
+        <div className="flex flex-wrap justify-center gap-4 mt-6 px-4">
           {thresholdData.map((level) => (
-            <div key={level.name} className="flex items-center text-xs">
+            <div key={level.name} className="flex items-center text-sm px-3 py-1.5 bg-gray-50 rounded-lg">
               <span 
-                className="inline-block w-3 h-3 mr-1 rounded-full"
+                className="inline-block w-3 h-3 mr-2 rounded-full"
                 style={{ backgroundColor: getThresholdColor(level.name) }}
               ></span>
               {level.name} ({level.threshold})
@@ -120,11 +120,11 @@ const getMaturityText = (score: number): string => {
 // Helper function to get threshold colors
 const getThresholdColor = (level: string): string => {
   switch (level) {
-    case "Iniciante": return "#ef4444"; // Red
-    case "Básico": return "#f97316"; // Orange
-    case "Intermediário": return "#eab308"; // Yellow
-    case "Avançado": return "#84cc16"; // Lime
-    case "Ideal": return "#22c55e"; // Green
+    case "Iniciante": return "#b3e0ff"; // Azul pastel
+    case "Básico": return "#66c2ff"; // Azul muito claro
+    case "Intermediário": return "#0099ff"; // Azul claro
+    case "Avançado": return "#0077cc"; // Azul mais claro
+    case "Ideal": return "#0056b3"; // Azul Adequa
     default: return "#94a3b8"; // Slate
   }
 };

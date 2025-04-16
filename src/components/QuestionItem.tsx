@@ -10,14 +10,25 @@ type QuestionItemProps = {
   onChange: (questionId: string, value: number) => void;
 };
 
+const defaultMaturityLabels = [
+  'Não implementado',
+  'Implementação inicial',
+  'Implementação parcial',
+  'Implementação avançada',
+  'Implementação completa'
+];
+
 const QuestionItem: React.FC<QuestionItemProps> = ({ 
   question, 
   value, 
   onChange 
 }) => {
   const handleChange = (value: string) => {
+    console.log(`QuestionItem handleChange triggered for ${question.id} with value: ${value}`); // Log de depuração
     onChange(question.id, parseInt(value));
   };
+
+  const labels = question.options || defaultMaturityLabels;
 
   return (
     <div className="p-4 bg-white rounded-lg shadow mb-4 transition-all hover:shadow-md">
@@ -28,31 +39,23 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
       <RadioGroup 
         value={value ? value.toString() : undefined} 
         onValueChange={handleChange}
-        className="flex space-x-1 sm:space-x-2"
+        className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-4"
       >
         {[1, 2, 3, 4, 5].map((rating) => (
-          <div key={rating} className="flex flex-col items-center">
-            <div className="flex items-center space-x-1">
-              <RadioGroupItem 
-                value={rating.toString()} 
-                id={`${question.id}-${rating}`} 
-                className="text-primary"
-              />
-              <Label 
-                htmlFor={`${question.id}-${rating}`} 
-                className="cursor-pointer text-sm"
-              >
-                {rating}
-              </Label>
-            </div>
-            <span className="text-xs text-gray-500 mt-1 hidden sm:block">
-              {rating === 1 && "Muito baixo"}
-              {rating === 2 && "Baixo"}
-              {rating === 3 && "Médio"}
-              {rating === 4 && "Alto"}
-              {rating === 5 && "Muito alto"}
-            </span>
-          </div>
+          // Separated RadioGroupItem and Label structure
+          <Label 
+            key={rating}
+            htmlFor={`${question.id}-${rating}`}
+            className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer w-full h-full text-center transition-colors data-[state=checked]:bg-primary/10 data-[state=checked]:border-4"
+          >
+            <RadioGroupItem 
+              value={rating.toString()} 
+              id={`${question.id}-${rating}`} 
+              className="peer"
+            />
+            <span className="font-bold text-lg mb-1">{rating}</span>
+            <span className="text-xs text-muted-foreground">{labels[rating - 1]}</span>
+          </Label>
         ))}
       </RadioGroup>
     </div>
